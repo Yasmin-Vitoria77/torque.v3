@@ -4,11 +4,11 @@ const fs = require ('fs')
 const path = require ('path')
 const express = require ('express')
 const mysql = require ('mysql2/promise')
-const bcrypt = require ('bycryptjs')
+const bcrypt = require ('bcryptjs')
 const jwt = require ('jsonwebtoken')
 const crypto = require('crypto')
 const cookieParser = require ('cookie-parser')
-const Mustache = require ('mustache')
+const mustache = require ('mustache')
 
 const app = express ()
 
@@ -57,7 +57,7 @@ async function excluir(res, tabela, id, volta, motivo){
         
         res.redirect(volta)
     } catch(error){
-        if(error.code === 'ER_ROW_ID_REFERENCED_2'){
+        if(error.code === 'ER_ROW_IS_REFERENCED_2'){
             return res.status(409).send(`<p>Nao foi possivel excluir: ${motivo}.</p><p><a href="${volta}">Voltar</a></p>`)
         }
         console.error(error)
@@ -70,7 +70,66 @@ app.get('/', (req, res) => {
 })
 
 app.post('/login', async (req, res) => {
-    
+    const {email, senha} = req.body // enviadas na body, protocolo HTTP
+
+    const [usuarios] = await db.query('SELECT * FROM usuarios WHERE email = ?', [email]) //pegando email que recebi no front
+
+    const usuario = usuarios[0]
+
+    if(!usuario || !(await bcrypt.compare(senha, usuario.senha))){
+        return res.send(mostrar('login', {erro: 'E-mail ou senha invalidos.'})) // pega HTML e exibe informação dentro dele {{erro}}
+    }
+
+    const token = jwt.sign({id: usuario.id, nome: usuario.nome}, process.env.JWT_SECRET, {expiresIn: '1h'}) // gerando T-O-K-E-N
+
+    res.cookie('token', token, {httpOnly: true})
+    res.redirect('/principal')
+})
+
+app.post('/sair', (req,res) => {
+    res.clearCookie('token') //apagando token assim que eu sair
+    res.redirect('/') //carregando tela de login
+})
+
+app.use((req, res, next) => { // as outras rotas passam por esse use (veiculos, agendamentos, clientes)
+    try{
+        req.usuario = jwt.verify(req.cookies.token, process.env.JWT_SECRET)
+        next()
+    } catch(erro){
+        res.redirect('/')
+    }
+})
+
+app.get('/principal', (req, res) => { // carregando meu front
+    res.send(mostrar('principal', {nome: req.usuario.nome}))
+})
+
+app.get('/clientes', async(req, res) => {
+    const busca = req.query.busca || '' // pode estar undefined, por isso a string vazia
+
+    const [lista] = await db.query('SELECT * FROM clientes WHERE nome LIKE ?', [`%${busca}`]) // não precisar escrever o nome inteiro, escrevo Celso, ñ Celso Giusti
+
+    const clientes = lista.map((cliente) => ({...cliente, cpf: descriptografar(cliente.cpf)}))
+
+    const editar = clientes.find((cliente) => String(cliente.id) === req.query.editar)
+
+    res.send(mostrar('clientes', {
+        busca,
+         clientes,
+          editando: Boolean(editar),
+           acao: editar ? `/clientes/${editar.id}` : `/clientes`, form: editar.id}))
+})
+
+app.post('/clientes', async(req, res) => {
+    const {nome, cpf, telefone, email} = req.body
+
+    await db.query('INSERT INTO clientes (nome, cpf, telefone, email) VALUES (?, ?, ?, ?)', [nome, criptografar(cpf), telefone, email])
+
+    res.redirect('/clientes')
+})
+
+app.delete('/clientes/:id', async (req, res) => {
+    await excluir(res, 'cliente', req.params.id, '/clientes', 'O cliente possui veiculos cadastrados')
 })
 
 const port = process.env.PORT || 3000

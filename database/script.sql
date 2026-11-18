@@ -1,14 +1,15 @@
 CREATE DATABASE IF NOT EXISTS mecanica;
 USE mecanica;
 
-CREATE TABLE IF NOT EXISTS usuario(
+CREATE TABLE IF NOT EXISTS usuarios(
 	id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(35) NOT NULL,
-    cpf VARCHAR(255) NOT NULL, -- TEM QUE SER CRIPTOGRAFADO
+    cpf VARCHAR(255) NOT NULL, -- TEM QUE SER CRIPTOGRAFADO,
+    email VARCHAR(255) NOT NULL,
     senha_hash VARCHAR(255) NOT NULL -- CRIPTOGRAFADO
 );
 
-CREATE TABLE IF NOT EXISTS cliente(
+CREATE TABLE IF NOT EXISTS clientes(
 	id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR (35) NOT NULL,
     cpf VARCHAR(255) NOT NULL,
@@ -18,7 +19,7 @@ CREATE TABLE IF NOT EXISTS cliente(
 );
 
 
-CREATE TABLE IF NOT EXISTS veiculo(
+CREATE TABLE IF NOT EXISTS veiculos(
 	id INT AUTO_INCREMENT PRIMARY KEY,
     modelo VARCHAR(50) NOT NULL,
     marca VARCHAR(50) NOT NULL,
@@ -37,7 +38,7 @@ CREATE TABLE IF NOT EXISTS agendamentos(
 
 --
 
-INSERT INTO usuario (nome, cpf, senha_hash) VALUES 
-("Paulin", "123.456.789-10", "$2b$10$XEsUku2aGrzEE3xkuqCxQuuE14HrSUp0K0X8XwHuzAwswY784.EHG"),
-("Cristiano", "124.567.987-10", "$2b$10$XEsUku2aGrzEE3xkuqCxQuuE14HrSUp0K0X8XwHuzAwswY784.EHG"),
-("Betina", "122.333.541-10", "$2b$10$XEsUku2aGrzEE3xkuqCxQuuE14HrSUp0K0X8XwHuzAwswY784.EHG")
+INSERT INTO usuarios (nome, cpf, email, senha_hash) VALUES 
+("Paulin","paulin@gmail.com", "123.456.789-10", "1234"),
+("Cristiano", "cristiano@gmail.com", "124.567.987-10", "12345"),
+("Betinha", "betinha@gmail.com", "122.333.541-10", "123456")

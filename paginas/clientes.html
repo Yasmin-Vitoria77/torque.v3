@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TORQUE - Clientes</title>
+</head>
+<body>
+    <h1>CLIENTES</h1>
+
+    <p><a href="/principal">Voltar</a></p>
+
+    <form method="GET" action="/clientes"> <!-- buscando clientes -->
+        <input type="text" name="busca" placeholder="Buscar por nome" value="{{busca}}" />
+        <button>Buscar</button>
+    </form> 
+
+    <table border="1">
+        <tr><th>Nome</th> <th>CPF</th> <th>Telefone</th> <th>E-mail</th></tr> <!-- parte superior da coluna (horizontal) -->
+        {{#clientes}}
+        <tr>
+            <td>{{nome}}</td> <!-- linhas -->
+            <td>{{cpf}}</td>
+            <td>{{telefone}}</td>
+            <td>{{email}}</td>
+            <td>
+                <a href="/clientes?editar={{id}}">Editar</a>
+                <form method="POST" action="/clientes/{{id}}">
+                    <input type="hidden" name="_method" value="DELETE" />
+                    <button>Exluir</button>
+                </form>
+            </td>
+        </tr>
+        {{/clientes}}
+    </table>
+
+    <h2>{{#editando}}Editar{{/editando}}
+        {{^editando}}Cadastrar{{/editando}} cliente
+    </h2>
+
+    <!-- <h2>Cadastrar Cliente</h2>
+    <form method="POST" action="/clientes">
+        <input type="text" name="nome" placeholder="Nome" required />
+        <input type="text" name="cpf" placeholder="CPF" required />
+        <input type="text" name="telefone" placeholder="Telefone" required />
+        <input type="email" name="email" placeholder="E-mail" required />
+
+        <button>Cadastrar</button>
+    </form> -->
+
+    <form method="POST" action="{{acao}}"> 
+        {{#editando}}
+        <input type="hidden" name="_methoh" value="PUT" /> {{/editando}}
+        <input type="text" name="nome" placeholder="Nome" value="{{form.nome}}" required />
+        <input type="text" name="cpf" placeholder="CPF" value="{{form.cpf}}" required />
+        <input type="text" name="telefone" placeholder="Telefone" value="{{form.telefone}}" required />
+        <input type="text" name="Email" placeholder="E-mail" value="{{form.email}}" required />
+
+        <button>{{#editando}}Salvar{{/editando}} {{^editando}}Cadastrar{{/editando}}</button>
+    </form>
+</body>
+</html>
