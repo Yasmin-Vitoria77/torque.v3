@@ -21,7 +21,7 @@ const db = mysql.createPool({
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    dateString: true // 
+    dateStrings: true // 
 })
 
 app.use((req, res, next) => {
@@ -40,20 +40,20 @@ function mostrar(nome, dados = {}){
 }
 
 function criptografar(texto){
-    const cifra = crypto.createCipheriv('aes-256-cdc', process.env.CRIPTO_CHAVE, process.env.CRIPTO_IV)
+    const cifra = crypto.createCipheriv('aes-256-cbc', process.env.CRIPTO_CHAVE, process.env.CRIPTO_IV)
 
     return cifra.update(texto, 'utf8', 'hex') + cifra.final('hex')
 }
 
 function descriptografar(texto){
-    const decifra = crypto.createDecipheriv('aes-256-cdc', process.env.CRIPTO_CHAVE, process.env.CRIPTO_IV)
+    const decifra = crypto.createDecipheriv('aes-256-cbc', process.env.CRIPTO_CHAVE, process.env.CRIPTO_IV)
 
     return decifra.update(texto, 'hex', 'utf8') + decifra.final('utf8')
 }
 
 async function excluir(res, tabela, id, volta, motivo){
     try {
-        await db.query(`DEELETE FROM ${tabela} WHERE id = ?`, [id])
+        await db.query(`DELETE FROM ${tabela} WHERE id = ?`, [id])
         
         res.redirect(volta)
     } catch(error){
@@ -61,7 +61,7 @@ async function excluir(res, tabela, id, volta, motivo){
             return res.status(409).send(`<p>Nao foi possivel excluir: ${motivo}.</p><p><a href="${volta}">Voltar</a></p>`)
         }
         console.error(error)
-        res.status(500).send(`<p>Erro ao excluir. </p><p><a href="${volta}">Voltar</a></p>`)
+        res.status(500).send(`<p>Erro ao excluir.</p><p><a href="${volta}">Voltar</a></p>`)
     }
 }
 
@@ -118,7 +118,7 @@ app.get('/clientes', async(req, res) => {
         busca,
          clientes,
           editando: Boolean(editar),
-           acao: editar ? `/clientes/${editar.id}` : `/clientes`, form: editar.id}))
+           acao: editar ? `/clientes/${editar.id}` : `/clientes`, form: editar || {}}))
 })
 
 app.post('/clientes', async(req, res) => {
@@ -130,7 +130,7 @@ app.post('/clientes', async(req, res) => {
 })
 
 app.delete('/clientes/:id', async (req, res) => {
-    await excluir(res, 'cliente', req.params.id, '/clientes', 'O cliente possui veiculos cadastrados')
+    await excluir(res, 'clientes', req.params.id, '/clientes', 'O cliente possui veiculos cadastrados')
 })
 
 async function mostrarVeiculos(req, res, erro ='') {
@@ -175,7 +175,7 @@ app.delete('/veiculos/:id', async (req, res) => {
 
 // CRUD de Agendamentos
 app.get('/agendamentos', async (req, res) => {
-    const [lista] = await db.query(`SELECT agendamentos.*, veiculos.placa, veiculos.marca, veiculos.modelo, clientes.nome AS cliente_nome FROM agendamentos JOIN veiculos ON veiculos.id = agendamentos.veiculo_id JOIN clientes ON clientes.id = veiculos.clientes_id ORDER BY agendamentos.data_agendamento`)
+    const [lista] = await db.query(`SELECT agendamentos.*, veiculos.placa, veiculos.marca, veiculos.modelo, clientes.nome AS cliente_nome FROM agendamentos JOIN veiculos ON veiculos.id = agendamentos.veiculo_id JOIN clientes ON clientes.id = veiculos.cliente_id ORDER BY agendamentos.data_agendamento`)
 
     const [veiculos] = await db.query('SELECT * FROM veiculos')
     const agendamentos = lista.map((a) => ({...a, data_br: new Date(a.data_agendamento).toLocaleString('pt-BR'), data_input: a.data_agendamento.slice(0, 16).replace(' ', 'T')}))

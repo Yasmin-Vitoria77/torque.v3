@@ -1,93 +1,34 @@
-// // Bibliotecas utilizadas 
-// require('dotenv').config() // faz as minhas configurações
-// const fs = require('fs')
-// const path = require('path')
-// const bcrypt = require('bcryptjs') // trabalha com hash de senha
-// const crypto = require('crypto') // trabalha com criptografia
-
-// // Função de criptografia da biblioteca crypto
-// function criptografarCpf(texto){                      // pegando chave
-//     const cifra = crypto.createCipheriv('aes-256-cbc',process.env.CRIPTO_CHAVE, process.env.CRIPTO_IV) // dizendo como a cifra vai trabalhar
-
-//     return cifra.update(texto, 'utf8', 'hex') + cifra.final('hex')
-// }
-//                                 // senha e saldo
-// const senhaHash = bcrypt.hashSync("1234", 10) // garanto que cada senha que eu salve diferente
-// const cpf1= criptografarCpf("11122233344")
-// const cpf2= criptografarCpf("22233344455")
-// const cpf3= criptografarCpf("33344455566")
-
-// const sql = `CREATE DATABASE IF NOT EXISTS mecanica;
-// USE mecanica;
-
-// CREATE TABLE IF NOT EXISTS usuarios(
-// 	id INT AUTO_INCREMENT PRIMARY KEY,
-//     nome VARCHAR(35) NOT NULL,
-//     cpf VARCHAR(255) NOT NULL, -- TEM QUE SER CRIPTOGRAFADO,
-//     email VARCHAR(255) NOT NULL,
-//     senha_hash VARCHAR(255) NOT NULL -- CRIPTOGRAFADO
-// );
-
-// CREATE TABLE IF NOT EXISTS clientes(
-// 	id INT AUTO_INCREMENT PRIMARY KEY,
-//     nome VARCHAR (35) NOT NULL,
-//     cpf VARCHAR(255) NOT NULL,
-//     telefone VARCHAR(20) NOT NULL,
-//     email VARCHAR(50) NOT NULL,
-//     papel ENUM ('usuario', 'cliente') DEFAULT 'cliente'
-// );
-
-
-// CREATE TABLE IF NOT EXISTS veiculos(
-// 	id INT AUTO_INCREMENT PRIMARY KEY,
-//     modelo VARCHAR(50) NOT NULL,
-//     marca VARCHAR(50) NOT NULL,
-//     placa VARCHAR(10) NOT NULL UNIQUE,
-//     ano YEAR NOT NULL,
-//     cliente_id INT NOT NULL, -- crio
-//     FOREIGN KEY (cliente_id) REFERENCES cliente(id) ON DELETE CASCADE -- transformo em chave estrangeira 
-// );
-
-// CREATE TABLE IF NOT EXISTS agendamentos(
-// 	id INT AUTO_INCREMENT PRIMARY KEY,
-//     cliente_id INT NOT NULL,
-//     data_agendamento TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-//     FOREIGN KEY (cliente_id) REFERENCES cliente(id) ON DELETE CASCADE
-// );
-
-// --
-
-// INSERT INTO usuarios (nome, cpf, email, senha_hash) VALUES 
-// ("Paulin","paulin@gmail.com", "123.456.789-10", "1234"),
-// ("Cristiano", "cristiano@gmail.com", "124.567.987-10", "12345"),
-// ("Betinha", "betinha@gmail.com", "122.333.541-10", "123456")`;
-
-//                     // une informações para gerar um caminho
-// const caminhoSaida = path.join(__dirname, 'database', 'script.sql') //__dirname = pasta em que estou - vou criar pasta e colocal arquivo
-
-// fs.writeFileSync(caminhoSaida, sql)
-// console.log(`Arquivo gerado em ${caminhoSaida}`)
-
-// Gera o arquivo database/script.sql
-//
-// O CPF criptografado e a senha com hash nao podem ser escritos a mao no SQL,
-// por isso este script usa a mesma chave do .env (utils/cripto.js) e o bcrypt
-// para gerar os valores corretos e montar o arquivo .sql pronto.
 require('dotenv').config();
+
 const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
-const { criptografarCpf } = require('./src/utils/cripto');
+const crypto = require('crypto');
 
-const senhaHash = bcrypt.hashSync('123456', 10);
+function criptografarCpf(texto) {
+    const chave = Buffer.from(process.env.CRIPTO_CHAVE, 'utf8');
+    const iv = Buffer.from(process.env.CRIPTO_IV, 'utf8');
+    const cifra = crypto.createCipheriv('aes-256-cbc', chave, iv);
+    return cifra.update(texto, 'utf8', 'hex') + cifra.final('hex');
+}
 
-const cpf1 = criptografarCpf('11122233344');
-const cpf2 = criptografarCpf('22233344455');
-const cpf3 = criptografarCpf('33344455566');
+const senha1 = bcrypt.hashSync('senha', 10);
+const senha2 = bcrypt.hashSync('1234', 10);
+const senha3 = bcrypt.hashSync('0608', 10);
 
-const sql = `-- Script gerado automaticamente por gerar-script.js
--- Nao edite o CPF ou a senha a mao: use "npm run gerar-script" no backend
+const cpf1 = criptografarCpf('12345678901');
+const cpf2 = criptografarCpf('09876543210');
+const cpf3 = criptografarCpf('10293847561');
 
+
+function sql(valor) {
+    if (valor === null || valor === undefined) {
+        return 'NULL';
+    }
+    return `'${String(valor).replace(/'/g, "''")}'`;
+}
+
+const script = `
 CREATE DATABASE IF NOT EXISTS oficina;
 USE oficina;
 
@@ -135,8 +76,8 @@ INSERT INTO usuarios (nome, email, senha) VALUES
 -- CPF salvo criptografado [RN03]
 INSERT INTO clientes (nome, cpf, telefone, email) VALUES
   ('Joao da Silva', '${cpf1}', '(11) 90000-1111', 'joao.silva@email.com'),
-  ('Maria Souza', '${cpf2}', '(11) 90000-2222', 'maria.souza@email.com'),
-  ('Pedro Oliveira', '${cpf3}', '(11) 90000-3333', 'pedro.oliveira@email.com');
+  ('Maria Souza', '${cpf1}', '(11) 90000-2222', 'maria.souza@email.com'),
+  ('Pedro Oliveira', '${cpf1}', '(11) 90000-3333', 'pedro.oliveira@email.com');
 
 -- Cada veiculo associado a um cliente [RN09]
 INSERT INTO veiculos (cliente_id, placa, marca, modelo, ano) VALUES
@@ -149,13 +90,10 @@ INSERT INTO agendamentos (veiculo_id, data_agendamento, servico) VALUES
   (2, '2026-11-05 09:00:00', 'Troca de oleo'),
   (1, '2026-10-20 14:30:00', 'Alinhamento e balanceamento'),
   (3, '2026-10-28 08:00:00', 'Revisao dos freios');
+
+
 `;
 
-const caminhoSaida = path.join(__dirname, '..', 'database', 'script.sql');
-fs.writeFileSync(caminhoSaida, sql);
-console.log(`Arquivo gerado em ${caminhoSaida}`);
-
-// troquei meu código pelo do Daniel
-// deu problema no caminho
-// inseri as últimas coisas no SQL
-// no meu faltava chamar o cpf e a senha, ambos criptografados - é para se inserir dados apenas aqui
+const caminho_saida = path.join(__dirname, 'database', 'script.sql');
+fs.writeFileSync(caminho_saida, script, 'utf8');
+console.log(`Arquivo gerado em: ${caminho_saida}`);
