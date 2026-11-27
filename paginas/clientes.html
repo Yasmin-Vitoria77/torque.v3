@@ -50,11 +50,11 @@
 
     <form method="POST" action="{{acao}}"> 
         {{#editando}}
-        <input type="hidden" name="_methoh" value="PUT" /> {{/editando}}
+        <input type="hidden" name="_method" value="PUT" /> {{/editando}}
         <input type="text" name="nome" placeholder="Nome" value="{{form.nome}}" required />
         <input type="text" name="cpf" placeholder="CPF" value="{{form.cpf}}" required />
         <input type="text" name="telefone" placeholder="Telefone" value="{{form.telefone}}" required />
-        <input type="text" name="Email" placeholder="E-mail" value="{{form.email}}" required />
+        <input type="email" name="email" placeholder="E-mail" value="{{form.email}}" required />
 
         <button>{{#editando}}Salvar{{/editando}} {{^editando}}Cadastrar{{/editando}}</button>
     </form>

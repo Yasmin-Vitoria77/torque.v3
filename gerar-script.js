@@ -69,15 +69,15 @@ CREATE TABLE agendamentos (
 
 -- Usuario de teste: admin@oficina.com / 123456
 INSERT INTO usuarios (nome, email, senha) VALUES
-  ('Administrador', 'admin@oficina.com', '${senhaHash}'),
-  ('Carlos Mecanico', 'carlos@oficina.com', '${senhaHash}'),
-  ('Fernanda Atendente', 'fernanda@oficina.com', '${senhaHash}');
+  ('Administrador', 'admin@oficina.com', '${senha1}'),
+  ('Carlos Mecanico', 'carlos@oficina.com', '${senha2}'),
+  ('Fernanda Atendente', 'fernanda@oficina.com', '${senha3}');
 
 -- CPF salvo criptografado [RN03]
 INSERT INTO clientes (nome, cpf, telefone, email) VALUES
   ('Joao da Silva', '${cpf1}', '(11) 90000-1111', 'joao.silva@email.com'),
-  ('Maria Souza', '${cpf1}', '(11) 90000-2222', 'maria.souza@email.com'),
-  ('Pedro Oliveira', '${cpf1}', '(11) 90000-3333', 'pedro.oliveira@email.com');
+  ('Maria Souza', '${cpf2}', '(11) 90000-2222', 'maria.souza@email.com'),
+  ('Pedro Oliveira', '${cpf3}', '(11) 90000-3333', 'pedro.oliveira@email.com');
 
 -- Cada veiculo associado a um cliente [RN09]
 INSERT INTO veiculos (cliente_id, placa, marca, modelo, ano) VALUES

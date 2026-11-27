@@ -121,6 +121,14 @@ app.get('/clientes', async(req, res) => {
            acao: editar ? `/clientes/${editar.id}` : `/clientes`, form: editar || {}}))
 })
 
+app.put('/clientes/:id', async (req, res) => {
+    const {nome, cpf, telefone, email} = req.body;
+
+    await db.query(`UPDATE clientes SET nome = ?, cpf = ?, telefone = ?, email = ? WHERE id = ?`,[nome, criptografar(cpf), telefone, email, req.params.id]);
+
+    res.redirect('/clientes');
+});
+
 app.post('/clientes', async(req, res) => {
     const {nome, cpf, telefone, email} = req.body
 

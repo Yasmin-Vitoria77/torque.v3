@@ -41,7 +41,7 @@
     </table>
     <h2>Cadastrar agendandamento</h2>
     <form method="POST" action="/agendamentos">
-        <select name="veiculos_id" required>
+        <select name="veiculo_id" required>
             <option value="">Selecione o veiculo</option>
                 {{#veiculos}}
                 <option value="{{id}}">{{placa}} - {{marca}} {{modelo}}</option>
